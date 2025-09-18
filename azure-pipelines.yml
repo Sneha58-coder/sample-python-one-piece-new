@@ -33,7 +33,7 @@ stages:
         organization: 'snehagaddam'
         scannerMode: 'CLI'
         projectKey: 'snehagaddam_sample-python-one-piece'
-        projectName: 'sample-python-one-piece-new'
+        projectName: 'sample-python-one-piece'
 
     - task: SonarCloudAnalyze@2
 
