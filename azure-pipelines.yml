@@ -27,16 +27,20 @@ stages:
       displayName: 'Install requirements'
 
     # SonarCloud Analysis
-    - task: SonarCloudPrepare@1
+    - task: SonarCloudPrepare@2
       inputs:
-        SonarCloud: 'SonarCloudConnection'        # Existing connection
-        organization: 'snehagaddam'             # Replace with your SonarCloud org
+        SonarCloud: 'SonarCloudConnection'
+        organization: 'snehagaddam'
         scannerMode: 'CLI'
-        projectKey: 'snehagaddam_sample-python-one-piece'          # Replace with your SonarCloud project key
+        projectKey: 'snehagaddam_sample-python-one-piece'
         projectName: 'sample-python-one-piece-new'
 
-    - task: SonarCloudAnalyze@1
-    - task: SonarCloudPublish@1
+    - task: SonarCloudAnalyze@2
+
+    - task: SonarCloudPublish@2
+      inputs:
+        pollingTimeoutSec: '300'
+
 
     # Archive artifacts for deployment
     - task: ArchiveFiles@2
