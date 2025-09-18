@@ -1,0 +1,68 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.13'
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Python App'
+    steps:
+    # Install Python
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+        addToPath: true
+
+    # Install dependencies
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      displayName: 'Install requirements'
+
+    # SonarCloud Analysis
+    - task: SonarCloudPrepare@1
+      inputs:
+        SonarCloud: 'SonarCloudConnection'        # Existing connection
+        organization: 'snehagaddam'             # Replace with your SonarCloud org
+        scannerMode: 'CLI'
+        projectKey: 'snehagaddam_sample-python-one-piece'          # Replace with your SonarCloud project key
+        projectName: 'sample-python-one-piece-new'
+
+    - task: SonarCloudAnalyze@1
+    - task: SonarCloudPublish@1
+
+    # Archive artifacts for deployment
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+        replaceExistingArchive: true
+
+    - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
+      artifact: drop
+
+- stage: Deploy
+  displayName: 'Deploy Stage'
+  dependsOn: Build
+  jobs:
+  - job: DeployJob
+    displayName: 'Deploy to Azure Web App'
+    steps:
+    - download: current
+      artifact: drop
+
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: 'AzureSub-Module7'      # Existing Azure service connection
+        appType: 'webAppLinux'
+        appName: 'moduleproject7-webapp-2025'               # Replace with your Azure Web App name
+        package: '$(Pipeline.Workspace)/drop/app.zip'
